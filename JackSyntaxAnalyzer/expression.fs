@@ -136,22 +136,21 @@ and returnStatment(tokens:tokenRecord[]) =
     //now check if the code give back an expression
     if next.value = ";" then 
         r <- [tokenToParserRecord(curr)] @ [tokenToParserRecord(next)]
-        r
     else 
         r <- [tokenToParserRecord(curr)] @ expression(tokens)
         let fianl = tokens.[TokenIndex.currIndex]
         append |> ignore
         r <- r @ [tokenToParserRecord(fianl)]
-        r
+    [{pType = ReturnStatement; inner = r; value = "returnStatement"}]
 
  and doStatement(tokens:tokenRecord[]) =
-    let curr = tokens.[TokenIndex.currIndex]
+    let curr = tokens.[TokenIndex.currIndex] //'do' token
     append |> ignore
     let subCall = subroutineCall(tokens)
-    let fianl = tokens.[TokenIndex.currIndex]
+    let fianl = tokens.[TokenIndex.currIndex] // ';' token
     append |> ignore
 
-    [tokenToParserRecord(curr)] @ subCall @ [tokenToParserRecord(fianl)]
+    [{pType = DoStatement; inner = [tokenToParserRecord(curr)] @ subCall @ [tokenToParserRecord(fianl)]; value = ""}]
 
 and whileStatement(tokens:tokenRecord[]) =
     //the while with (expression)
@@ -170,7 +169,8 @@ and whileStatement(tokens:tokenRecord[]) =
     let closeS = tokens.[TokenIndex.currIndex]
     append |> ignore
 
-    [tokenToParserRecord(curr)] @ [tokenToParserRecord(openB)] @ expre @ [tokenToParserRecord(closeB)] @ [tokenToParserRecord(openS)] @ Statements @ [tokenToParserRecord(closeS)]
+    let r = [tokenToParserRecord(curr)] @ [tokenToParserRecord(openB)] @ expre @ [tokenToParserRecord(closeB)] @ [tokenToParserRecord(openS)] @ Statements @ [tokenToParserRecord(closeS)]
+    [{pType = WhileStatement; inner = r; value = ""}]
 
 and ifStatement(tokens:tokenRecord[]) =
    //the while with (expression)
@@ -204,7 +204,7 @@ and ifStatement(tokens:tokenRecord[]) =
 
         r <- r @ [tokenToParserRecord(elseS)] @ [tokenToParserRecord(elseOpenS)] @ elseStatements @ [tokenToParserRecord(elseCloseS)]
      
-    r
+    [{pType = IfStatement; inner = r; value = ""}]
 
 and letStatement(tokens:tokenRecord[]) =
     let letS = tokens.[TokenIndex.currIndex]
@@ -232,8 +232,8 @@ and letStatement(tokens:tokenRecord[]) =
     let fianl = tokens.[TokenIndex.currIndex]
     append |> ignore
     
-    r @ expreS @ [tokenToParserRecord(fianl)]
-
+    [{pType = LetStatement; inner = r @ expreS @ [tokenToParserRecord(fianl)]; value = ""}]
+    
 
 
 
@@ -241,25 +241,19 @@ let varName(tokens:tokenRecord[]) =
     let curr = tokens.[TokenIndex.currIndex]
     append |> ignore
 
-    match isVarName(curr) with
-    | true -> [tokenToParserRecord(curr)]
-    | false -> raise (new System.Exception("there should be here and identifier"))
+    [tokenToParserRecord(curr)]
 
 let subroutineName(tokens:tokenRecord[]) =
     let curr = tokens.[TokenIndex.currIndex]
     append |> ignore
 
-    match isVarName(curr) with
-    | true -> [tokenToParserRecord(curr)]
-    | false -> raise (new System.Exception("there should be here and identifier"))
+    [tokenToParserRecord(curr)]
 
 let className(tokens:tokenRecord[]) =
     let curr = tokens.[TokenIndex.currIndex]
     append |> ignore
 
-    match isVarName(curr) with
-    | true -> [tokenToParserRecord(curr)]
-    | false -> raise (new System.Exception("there should be here and identifier"))
+    [tokenToParserRecord(curr)]
 
 let typeStructure(tokens:tokenRecord[]) =
     let curr = tokens.[TokenIndex.currIndex]

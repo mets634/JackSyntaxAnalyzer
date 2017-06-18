@@ -5,6 +5,7 @@ open TokenType
 
 type parserType = KeyWord | Symbol | IntegerConstant | StringConstant | Identifier // lexical elements
                     | Expression | Term | SubroutineCall | ExpressionList // expressions
+                    | ReturnStatement | DoStatement | WhileStatement | IfStatement | LetStatement | Statements //statements
                     | IgnoreMe
 
 let tokenToParser (t:elementType) =
@@ -30,6 +31,13 @@ let parserTypeToString (e:parserType) =
     | Term -> "term"
     | SubroutineCall -> "subroutineCall"
     | ExpressionList -> "expressionList"
+
+    | ReturnStatement -> "returnStatement"
+    | DoStatement -> "doStatement"
+    | WhileStatement -> "whileStatement"
+    | IfStatement -> "ifStatement"
+    | LetStatement -> "letStatement"
+    | Statements -> "statements"
 
     | _ -> ""
 
