@@ -1,6 +1,5 @@
 ﻿module ParserType
 
-
 open TokenType
 
 type parserType = KeyWord | Symbol | IntegerConstant | StringConstant | Identifier // lexical elements

@@ -46,7 +46,6 @@ let tokenizeFile(file:FileInfo) =
 
     sr.Close()
 
-
 [<EntryPoint>]
 let main argv = 
     let dirPath = getArg argv
