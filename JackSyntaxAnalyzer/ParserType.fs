@@ -82,5 +82,26 @@ let isOp (tkn:tokenRecord) =
     | "+" | "-" | "*" | @"/" | "&" | "|" | "<" | ">" | "=" -> true
     | _ -> false
 
+let isType(tkn:tokenRecord) = 
+    match tkn.value with
+    | "int" -> true
+    | "char" -> true
+    | "boolean" -> true
+    | isClassName -> true
+    | _ -> false
+
+let isClassVarDec(tkn:tokenRecord) = 
+    match tkn.value with
+    | "static" -> true
+    | "field" -> true
+    | _ -> false
+
+let isSubroutineDec(tkn:tokenRecord) = 
+    match tkn.value with
+    | "constructor" -> true
+    | "function" -> true
+    | "method" -> true
+    | _ -> false
+
 exception ParserException of string
 

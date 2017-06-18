@@ -12,3 +12,5 @@ let elementTypeToString (e:elementType) =
 
 type tokenRecord = { eType:elementType; value:string }
 exception TokenException of string 
+
+
