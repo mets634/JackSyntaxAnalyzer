@@ -53,10 +53,10 @@
     <None Include="App.config" />
     <Compile Include="TokenType.fs" />
     <Compile Include="LexicalElements.fs" />
+    <Compile Include="ParserType.fs" />
     <Compile Include="XmlWriter.fs" />
     <Compile Include="Tokenizer.fs" />
     <Compile Include="TokenIndex.fs" />
-    <Compile Include="ParserType.fs" />
     <Compile Include="Parser.fs" />
     <Compile Include="expression.fs" />
     <Compile Include="Program.fs" />

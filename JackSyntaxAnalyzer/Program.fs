@@ -7,6 +7,9 @@ open System.Text.RegularExpressions
 open XmlWriter
 open Tokenizer
 open expression
+open TokenType
+
+open TokenIndex
 
 
 let tempFile = @"temp.jack"
@@ -37,12 +40,14 @@ let tokenizeFile(file:FileInfo) =
 
     // tokenize file
     let sr = new StreamReader(tempFile)
-    let root = tokenize(sr) |> List.toArray |> classStructure
+    let root = tokenize(sr) |> List.toArray |> Array.filter(fun t -> t.eType < elementType.IgnoreMe)
     
+    
+    let Xtree = createSingleParserTree(classStructure(root).[0])
     //|> createTokensXml
 
     // write to token file
-    //File.WriteAllText(file.DirectoryName + @"\" + Path.GetFileNameWithoutExtension(file.Name) + @".xml", root.ToString())
+    File.WriteAllText(file.DirectoryName + @"\" + Path.GetFileNameWithoutExtension(file.Name) + @"Mine.xml", Xtree.ToString())
 
     sr.Close()
 

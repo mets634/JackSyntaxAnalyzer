@@ -273,8 +273,8 @@ let varDec(tokens:tokenRecord[]) =
         append |> ignore
         r <- r @ [tokenToParserRecord(curr)] @ varName(tokens)
         curr <- tokens.[TokenIndex.currIndex]
-        
-    r
+     
+    [{pType = VarDec; inner = r; value = ""}]   
 
 let subroutineBody(tokens:tokenRecord[]) =
     let openB = tokens.[TokenIndex.currIndex]
@@ -289,8 +289,8 @@ let subroutineBody(tokens:tokenRecord[]) =
     let closeB = tokens.[TokenIndex.currIndex]
     append |> ignore
 
-    [tokenToParserRecord(openB)] @ r @ state @ [tokenToParserRecord(closeB)]
-
+    [{pType = SubroutineBody; inner = [tokenToParserRecord(openB)] @ r @ state @ [tokenToParserRecord(closeB)]; value = ""}]
+    
 let paramaterList(tokens:tokenRecord[]) =
     let mutable curr = tokens.[TokenIndex.currIndex]
     let mutable r = []
@@ -304,7 +304,7 @@ let paramaterList(tokens:tokenRecord[]) =
             r <- r @ typeStructure(tokens) @ varName(tokens)
             curr <- tokens.[TokenIndex.currIndex]
 
-    r
+    [{pType = ParamaterList; inner = r; value = ""}]
    
 let subroutineDec(tokens:tokenRecord[]) =
     let declartion = tokens.[TokenIndex.currIndex]
@@ -332,8 +332,8 @@ let subroutineDec(tokens:tokenRecord[]) =
     let closeS = tokens.[TokenIndex.currIndex]
     append |> ignore
     
-    r @ [tokenToParserRecord(openS)] @ PL @ [tokenToParserRecord(closeS)] @ subroutineBody(tokens)
-
+    [{pType = SubroutineDec; inner = r @ [tokenToParserRecord(openS)] @ PL @ [tokenToParserRecord(closeS)] @ subroutineBody(tokens); value = ""}]
+    
 let classVarDec(tokens:tokenRecord[]) =
     let mutable r = []
     let kind = tokens.[TokenIndex.currIndex] // static|field
@@ -350,7 +350,7 @@ let classVarDec(tokens:tokenRecord[]) =
     let final = tokens.[TokenIndex.currIndex] //the ';'
     append |> ignore
 
-    r @ [tokenToParserRecord(final)]
+    [{pType = ClassVarDec; inner = r @ [tokenToParserRecord(final)]; value = ""}]
 
 let classStructure(tokens:tokenRecord[]) =
     let mutable r = []
@@ -369,4 +369,4 @@ let classStructure(tokens:tokenRecord[]) =
     let fianl = tokens.[TokenIndex.currIndex]
     append |> ignore
 
-    r @ [tokenToParserRecord(fianl)]
+    [{pType = Class; inner = r @ [tokenToParserRecord(fianl)]; value = ""}]
