@@ -104,8 +104,8 @@ let isType(tkn:tokenRecord) =
     | "int" -> true
     | "char" -> true
     | "boolean" -> true
-    | isClassName -> true
-    | _ -> false
+    | _ -> if isClassName(tkn) then true
+           else false
 
 let isClassVarDec(tkn:tokenRecord) = 
     match tkn.value with

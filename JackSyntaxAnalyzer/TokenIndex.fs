@@ -1,7 +1,10 @@
 ﻿module TokenIndex
 
-let mutable currIndex = 0
+let mutable i = []
 
 let append = 
-    currIndex <- currIndex + 1
+    i <- i @ [1]
+    i
 
+let currIndex = 
+    i.Length
