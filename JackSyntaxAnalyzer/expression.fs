@@ -37,7 +37,7 @@ let rec term (tokens:tokenRecord[]) =
     | t when isVarName(t) && next.value = "[" -> index <- index + 1
                                                  index <- index + 1
                                                  let res = [{ pType=Term; 
-                                                 inner=[tokenToParserRecord(curr); tokenToParserRecord(next)] @ expression(tokens) @ [{pType=tokenToParser(curr.eType); inner=List.empty; value="]"}]; 
+                                                 inner=[tokenToParserRecord(curr); tokenToParserRecord(next)] @ expression(tokens) @ [{pType=tokenToParser(elementType.Symbol); inner=List.empty; value="]"}]; 
                                                  value=t.value }]
                                                  index <- index + 1 // read ']'
                                                  res
@@ -47,9 +47,8 @@ let rec term (tokens:tokenRecord[]) =
                               let res = [{ pType=Term; inner=tokenToParserRecord(t)::expression(tokens) @ [{pType=tokenToParser(t.eType); inner=List.empty; value=")"}]; value=t.value }]
                               index <- index + 1 // read ')'
                               res
-    | t when isUnaryOp(t) -> index <- index + 1
-                             unaryOp(t)::term(tokens)
-    | _ -> subroutineCall(tokens)
+    | t when isUnaryOp(t) -> [{pType = Term; inner = unaryOp(t)::term(tokens); value = ""}]
+    | _ -> [{pType = Term; inner = subroutineCall(tokens); value = ""}]
 
 and expression (tokens:tokenRecord[]) =
     let mutable r = term(tokens)
@@ -60,7 +59,7 @@ and expression (tokens:tokenRecord[]) =
 
         curr <- tokens.[index] //upate curr
 
-    r
+    [{pType = Expression; inner = r; value = ""}]
 
 and subroutineCall(tokens:tokenRecord[]) =
     let curr = tokens.[index]
@@ -69,9 +68,7 @@ and subroutineCall(tokens:tokenRecord[]) =
         // check if subroutine name exists
         index <- index + 1
         index <- index + 1
-        let res = [{ pType=SubroutineCall; 
-        inner=[tokenToParserRecord(curr); tokenToParserRecord(next)] @ expressionList(tokens) @ [{pType=Symbol; inner=List.empty; value=")" }];
-        value=curr.value }]
+        let res = [tokenToParserRecord(curr); tokenToParserRecord(next)] @ expressionList(tokens) @ [{pType=Symbol; inner=List.empty; value=")" }]
         index <- index + 1
 
         res
@@ -83,12 +80,10 @@ and subroutineCall(tokens:tokenRecord[]) =
         let subName = tokens.[index]
         index <- index + 1 // 'subName'
         index <- index + 1 // '('
-        let res = [{ pType=SubroutineCall; 
-        inner=[tokenToParserRecord(curr); tokenToParserRecord(next); tokenToParserRecord(subName); {pType=Symbol; inner=List.empty; value="("}] @ expressionList(tokens) @ [{pType=Symbol; inner=List.empty; value=")" }];
-        value=curr.value }]
+        let r =[tokenToParserRecord(curr); tokenToParserRecord(next); tokenToParserRecord(subName); {pType=Symbol; inner=List.empty; value="("}] @ expressionList(tokens) @ [{pType=Symbol; inner=List.empty; value=")" }]
         index <- index + 1 // ')'
 
-        res
+        r
 
     else
         failwith "hello"
@@ -99,15 +94,15 @@ and expressionList(tokens:tokenRecord[]) =
         let mutable curr = tokens.[index]
 
         while curr.value = "," do
-            acc <- acc @ expression(tokens)
-            acc <- acc @ [tokenToParserRecord(curr)] // add token
-
             index <- index + 1
+            let temp = expression(tokens)
+            acc <- acc @ [tokenToParserRecord(curr)] @ temp
+
             curr <- tokens.[index]
 
-        acc
+        [{pType = ExpressionList; inner = acc; value = ""}]
 
-    with _ -> []
+    with _ -> [{pType = ExpressionList; inner = List.empty; value = ""}]
 
 let rec statements(tokens:tokenRecord[]) = 
     let mutable r = statement(tokens)
@@ -138,6 +133,7 @@ and returnStatment(tokens:tokenRecord[]) =
     //now check if the code give back an expression
     if next.value = ";" then 
         r <- [tokenToParserRecord(curr)] @ [tokenToParserRecord(next)]
+        index <- index + 1
     else 
         r <- [tokenToParserRecord(curr)] @ expression(tokens)
         let fianl = tokens.[index]
@@ -300,7 +296,7 @@ let paramaterList(tokens:tokenRecord[]) =
         curr <- tokens.[index]
         while curr.value = "," do
             index <- index + 1
-            r <- r @ typeStructure(tokens) @ varName(tokens)
+            r <- r @ [tokenToParserRecord(curr)] @ typeStructure(tokens) @ varName(tokens)
             curr <- tokens.[index]
 
     [{pType = ParamaterList; inner = r; value = ""}]
@@ -351,7 +347,8 @@ let classVarDec(tokens:tokenRecord[]) =
 
     [{pType = ClassVarDec; inner = r @ [tokenToParserRecord(final)]; value = ""}]
 
-let classStructure(tokens:tokenRecord[]) =
+let classStructure(tokens:tokenRecord[]) = 
+    index <- 0
     let mutable r = []
     let s = tokens.[index] //the 'class' token
     index <- index + 1
