@@ -15,7 +15,13 @@ let unaryOp (token:tokenRecord) =
 
 let op (token:tokenRecord) = 
     index <- index + 1
-    tokenToParserRecord(token)
+    [tokenToParserRecord(token)]
+
+let subroutineName(tokens:tokenRecord[]) =
+    let curr = tokens.[index]
+    index <- index + 1
+
+    [tokenToParserRecord(curr)]
 
     
 let rec term (tokens:tokenRecord[]) =
@@ -35,9 +41,8 @@ let rec term (tokens:tokenRecord[]) =
                                                  value=t.value }]
                                                  index <- index + 1 // read ']'
                                                  res
-    | t when isVarName(t) && not (next.value = "[") -> index <- index + 1
-                                                       [{ pType=Term; inner=[tokenToParserRecord(t)]; value=t.value }]
-
+    | t when isVarName(t) && not (next.value = "[" || next.value = ".") -> index <- index + 1
+                                                                           [{ pType=Term; inner=[tokenToParserRecord(t)]; value=t.value }]
     | t when t.value = "(" -> index <- index + 1
                               let res = [{ pType=Term; inner=tokenToParserRecord(t)::expression(tokens) @ [{pType=tokenToParser(t.eType); inner=List.empty; value=")"}]; value=t.value }]
                               index <- index + 1 // read ')'
@@ -46,22 +51,16 @@ let rec term (tokens:tokenRecord[]) =
                              unaryOp(t)::term(tokens)
     | _ -> subroutineCall(tokens)
 
-
 and expression (tokens:tokenRecord[]) =
-    let terms = term(tokens)
+    let mutable r = term(tokens)
     let mutable curr = tokens.[index]
 
-    let mutable acc = list<parserRecord>.Empty
     while isOp(curr) do
-        index <- index + 1
+        r <- r @ op(curr) @ term(tokens)
 
-        // add new tokens
-        acc <- acc @ op(curr)::term(tokens)
+        curr <- tokens.[index] //upate curr
 
-        curr <- tokens.[index] // update curr
-
-    acc // return accumulated items
-
+    r
 
 and subroutineCall(tokens:tokenRecord[]) =
     let curr = tokens.[index]
@@ -82,6 +81,7 @@ and subroutineCall(tokens:tokenRecord[]) =
 
         index <- index + 1 // period
         let subName = tokens.[index]
+        index <- index + 1 // 'subName'
         index <- index + 1 // '('
         let res = [{ pType=SubroutineCall; 
         inner=[tokenToParserRecord(curr); tokenToParserRecord(next); tokenToParserRecord(subName); {pType=Symbol; inner=List.empty; value="("}] @ expressionList(tokens) @ [{pType=Symbol; inner=List.empty; value=")" }];
@@ -117,7 +117,7 @@ let rec statements(tokens:tokenRecord[]) =
     while curr.value = "let" || curr.value = "if" || curr.value = "while" || curr.value = "do" || curr.value = "return" do
         r <- r @ statement(tokens)
         curr <- tokens.[index]
-    r
+    [{pType = Statements; inner = r; value = ""}]
 
 and statement(tokens:tokenRecord[]) =
     let curr = tokens.[index]
@@ -240,12 +240,6 @@ and letStatement(tokens:tokenRecord[]) =
 
 
 let varName(tokens:tokenRecord[]) =
-    let curr = tokens.[index]
-    index <- index + 1
-
-    [tokenToParserRecord(curr)]
-
-let subroutineName(tokens:tokenRecord[]) =
     let curr = tokens.[index]
     index <- index + 1
 

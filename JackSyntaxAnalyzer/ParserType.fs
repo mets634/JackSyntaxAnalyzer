@@ -61,12 +61,12 @@ let mutable classList = List<string>.Empty
 
 let isIntegerConstant (tkn:tokenRecord) =
     match tkn.eType with
-    | integerConstant -> true
+    | elementType.IntegerConstant -> true
     | _ -> false
 
 let isStringConstant (tkn:tokenRecord) =
     match tkn.eType with
-    | stringConstant -> true
+    | elementType.StringConstant -> true
     | _ -> false
 
 let isKeywordConstant (tkn:tokenRecord) =
