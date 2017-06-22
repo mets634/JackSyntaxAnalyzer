@@ -353,7 +353,7 @@ let classStructure(tokens:tokenRecord[]) =
     let s = tokens.[index] //the 'class' token
     index <- index + 1
 
-    r <- [tokenToParserRecord(s)] @ className(tokens) @[tokenToParserRecord(tokens.[index])] //including the '{'
+    r <- [tokenToParserRecord(s)] @ className(tokens) @ [tokenToParserRecord(tokens.[index])] //including the '{'
     index <- index + 1
 
     while isClassVarDec(tokens.[index]) do

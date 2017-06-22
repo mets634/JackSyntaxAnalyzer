@@ -59,9 +59,10 @@
     <Compile Include="TokenIndex.fs" />
     <Compile Include="Parser.fs" />
     <Compile Include="expression.fs" />
-    <Compile Include="Program.fs" />
-    <Compile Include="CodeGeneration.fs" />
     <Compile Include="VariableType.fs" />
+    <Compile Include="SymbolMap.fs" />
+    <Compile Include="CodeGeneration.fs" />
+    <Compile Include="Program.fs" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
