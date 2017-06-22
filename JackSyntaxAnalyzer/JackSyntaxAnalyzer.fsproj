@@ -60,6 +60,8 @@
     <Compile Include="Parser.fs" />
     <Compile Include="expression.fs" />
     <Compile Include="Program.fs" />
+    <Compile Include="CodeGeneration.fs" />
+    <Compile Include="VariableType.fs" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
