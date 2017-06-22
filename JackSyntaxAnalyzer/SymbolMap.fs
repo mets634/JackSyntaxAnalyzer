@@ -6,12 +6,15 @@ let mutable functionScope = [{name = ""; vType = Int; vMKind = Var; index = 0}]
 
 let mutable classScope = [{name = ""; vType = Int; vCKind = Field; index = 0}]
 
+let mutable statementNumber = 0
+
 let newFunction = 
     functionScope <- []
 
 let newClass = 
     classScope <- []
     functionScope <- []
+    statementNumber <- 0
 
 let addToMethod(VName:string , VType:variableType , VMKind:variableMethodKind) = 
     functionScope <- {name = VName; vType = VType; vMKind = VMKind; index = functionScope.Length + 1} :: functionScope

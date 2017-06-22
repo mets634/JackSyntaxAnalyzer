@@ -12,12 +12,22 @@ type variableMethodKind = Var //created on subroutine entry,killed on exit
 type variableType = Int | Char | Boolean | ClassName
 
 
-let stringToType(t:string) = 
-    match t with
+let parserToType(t:parserRecord) = 
+    match t.value with
     | "int" -> Int
     | "char" -> Char
     | "boolean" -> Boolean
-    | t when 
+    | v when t.pType.Equals Identifier -> ClassName
+
+let parserToCKind(t:parserRecord) = 
+    match t.value with
+    | "static" -> Static
+    | "field" -> Field
+
+let parserToMKind(t:parserRecord) = 
+    match t.value with
+    | "var" -> Var
+    | v when t.pType.Equals ParamaterList -> Argument
 
 
 
