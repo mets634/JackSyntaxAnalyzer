@@ -5,6 +5,7 @@ open System
 open SymbolMap
 open ParserType
 open VariableType
+open CodeGeneration2
 
 
 //////////////Sets in the scope table fields for the class
