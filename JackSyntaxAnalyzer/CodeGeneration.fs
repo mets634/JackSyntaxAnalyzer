@@ -16,7 +16,7 @@ let classVarDecHandler(treeNode:parserRecord) =
     let mutable nameIndex:int = 2 //in case multiple variable were defined
     while not(treeNode.inner.Item(nameIndex).value.Equals ";") do //as long as we dont get to the end of the declartion
         nameIndex <- nameIndex + 1
-        addToClass(treeNode.inner.Item(nameIndex).value,parserToType(Vtype),parserToCKind(kind)) |> ignore
+        addToScope(treeNode.inner.Item(nameIndex).value,parserToType(Vtype),parserToKind(kind)) |> ignore
         nameIndex <- nameIndex + 1
 
 
@@ -29,7 +29,7 @@ let parameterListHandler(treeNode:parserRecord) =
     let mutable counter = 0 //going through the nodes (to add all the paramaters)
     
     while treeNode.inner.Length >= counter do
-        addToMethod(treeNode.inner.Item(counter + 1).value , parserToType(treeNode.inner.Item(counter)),Argument) |> ignore
+        addToScope(treeNode.inner.Item(counter + 1).value , parserToType(treeNode.inner.Item(counter)),Argument) |> ignore
         counter <- counter + 3 //next parameter
 
 ///////////////add all the variable to the funcion's scope as Var
@@ -39,7 +39,7 @@ let varDecHandler(treeNode:parserRecord) =
     let mutable nameIndex:int = 2 //in case multiple variable were defined
     while not(treeNode.inner.Item(nameIndex).value.Equals ";") do //as long as we dont get to the end of the declartion
         nameIndex <- nameIndex + 1
-        addToMethod(treeNode.inner.Item(nameIndex).value,Vtype,Var) |> ignore
+        addToScope(treeNode.inner.Item(nameIndex).value,Vtype,Var) |> ignore
         nameIndex <- nameIndex + 1
 
 //////*function's code*
@@ -58,7 +58,8 @@ let rec statementsGenerate(treeNode:parserRecord) =
     VmCode         
 
 ///leave this to me
-and letGenerate(treeNode:parserRecord) =     //let statement    
+and letGenerate(treeNode:parserRecord) =     //let statement  
+      
     [""]
 and ifGenerate(treeNode:parserRecord) =      //if statement
     [""]
@@ -85,12 +86,12 @@ let subroutineDecGenerate(treeNode:parserRecord) =
     let mutable VmCode = List.Empty //the generated
 
     if not(treeNode.inner.Head.value.Equals "function") then //set "this" variable 
-        addToMethod("this",ClassName,Argument)
+        addToScope("this",ClassName,Argument)
         VmCode <- VmCode @ ["push argumnet 0"; "pop pointer 0"] //set "THIS" frame
     
     parameterListHandler(treeNode.inner.Item 4) |> ignore
     VmCode <- VmCode @ subroutineBodyGenerate(treeNode.inner.Item 6)
-    ["function " + className + "." + functionName + " " + methodVarCount(Var)] @ VmCode
+    ["function " + className + "." + functionName + " " + varCount(Var)] @ VmCode
 
 
 
