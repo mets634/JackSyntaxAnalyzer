@@ -31,6 +31,6 @@ let parserToMKind(t:parserRecord) =
 
 
 
-type variableClassRecord = {name:string ; vType:variableType ; vCKind:variableClassKind ;index:int }
+type variableClassRecord = {name:string ; vType:string ; vCKind:variableClassKind ;index:int }
 
-type variableMethodRecord = {name:string ; vType:variableType ; vMKind:variableMethodKind ;index:int }
+type variableMethodRecord = {name:string ; vType:string ; vMKind:variableMethodKind ;index:int }
