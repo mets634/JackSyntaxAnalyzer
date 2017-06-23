@@ -61,6 +61,7 @@
     <Compile Include="expression.fs" />
     <Compile Include="VariableType.fs" />
     <Compile Include="SymbolMap.fs" />
+    <Compile Include="CodeGeneration2.fs" />
     <Compile Include="CodeGeneration.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

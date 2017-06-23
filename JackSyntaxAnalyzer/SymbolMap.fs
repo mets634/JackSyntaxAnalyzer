@@ -53,4 +53,13 @@ let classVarCount(VK:variableClassKind) =
 //kind of
 
 let typeOf(VName:string) = 
-    classScope |> List.filter(fun record -> record.name.Equals VName) |> List.item(0)
+    let var = classScope |> List.find(fun record -> record.name.Equals VName)
+    var.vType
+
+let kindOf(VName:string) = 
+    let var = classScope |> List.find(fun record -> record.name.Equals VName)
+    var.vCKind
+
+let indexOf(VName:string) = 
+    let var = classScope |> List.find(fun record -> record.name.Equals VName)
+    var.index
