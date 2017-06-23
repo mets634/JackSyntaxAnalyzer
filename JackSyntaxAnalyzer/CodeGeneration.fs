@@ -59,17 +59,63 @@ let rec statementsGenerate(treeNode:parserRecord) =
 
 ///leave this to me
 and letGenerate(treeNode:parserRecord) =     //let statement  
-      
-    [""]
-and ifGenerate(treeNode:parserRecord) =      //if statement
-    [""]
-and whileGenerate(treeNode:parserRecord) =   //while statement
-    [""]
-and doGenerate(treeNode:parserRecord) =      //do statement
-    [""]
-and returnGenerate(treeNode:parserRecord) =  //return statement
-    [""]
+    let mutable VmCode = List.empty<string>
+    
+    let stack = match kindOf(treeNode.inner.Item(1).value) with
+                | Var -> "local"
+                | Argument -> "argument"
+                | Field -> "this"
+                | Static -> "static"
+    
+    if treeNode.inner.Item(2).value.Equals("[") then //in case of array
+        VmCode <- VmCode @ ["push " + stack + " " + indexOf(treeNode.inner.Item(1).value).ToString()] @ expressionGenerate(treeNode.inner.Item 3) @
+                     ["add";"pop pointer 1"] @ expressionGenerate(treeNode.inner.Item(treeNode.inner.Length - 1)) @ ["pop that 0"]
+    else 
+        VmCode <- VmCode @ expressionGenerate(treeNode.inner.Item(treeNode.inner.Length - 1)) @ ["pop " + stack + indexOf(treeNode.inner.Item(1).value).ToString()]
+    VmCode
 
+and ifGenerate(treeNode:parserRecord) =      //if statement
+    let mutable VmCode = expressionGenerate(treeNode.inner.Item 2)
+    let idx  = getNumber()
+
+    VmCode <- VmCode @ ["if-goto IF_TRUE" + idx; "goto IF_FALSE" + idx;"label IF_TRUE" + idx] @ statementsGenerate(treeNode.inner.Item 5) @ ["label IF_FALSE" + idx]
+
+    if treeNode.inner.Length > 7 then //in case of 'else statement
+        VmCode <- VmCode @ statementsGenerate(treeNode.inner.Item 9)
+        
+    VmCode
+
+and whileGenerate(treeNode:parserRecord) =   //while statement
+    let idx = getNumber()
+    ["label WHILE_EXP" + idx; ] @ expressionGenerate(treeNode.inner.Item 2) @ ["not";"if-goto WHILE_END" + idx] 
+                         @ statementsGenerate(treeNode.inner.Item 5) @ ["label WHILE_END" + idx]
+    
+and doGenerate(treeNode:parserRecord) =      //do statement
+    let mutable VmCode = List.Empty
+
+    //push this arg
+    if treeNode.inner.Item(2).value.Equals "." then // if its a call with a variable
+        VmCode <- VmCode @ ["push pointer 0"]
+    else 
+        VmCode <- VmCode @ ["push argument " + indexOf(treeNode.inner.Item(1).value).ToString()]
+
+    VmCode <- VmCode @ expressionListGenerate(treeNode.inner.Item(treeNode.inner.Length - 3)) //push all the parameters to the list
+    let paramsNumber = VmCode.Length - 1
+
+    if treeNode.inner.Item(2).value.Equals "." then // if its a call with a variable
+        VmCode <- VmCode @ ["call " + treeNode.inner.Item(1).value + treeNode.inner.Item(2).value + treeNode.inner.Item(3).value + " " + paramsNumber.ToString()]
+    else
+        VmCode <- VmCode @ ["call " + className + "." + treeNode.inner.Item(1).value + " " + paramsNumber.ToString()]    
+    VmCode
+
+and returnGenerate(treeNode:parserRecord) =  //return statement
+    let mutable VmCode = ["return"]
+
+    if treeNode.inner.Length > 2 then //in case i should return a vlaue
+        VmCode <- expressionGenerate(treeNode.inner.Item 1) @ VmCode
+    else 
+        VmCode <- ["push constant 0"] @ VmCode
+    VmCode
 
 let subroutineBodyGenerate(treeNode:parserRecord) =  
     let mutable varIndex = 2 //these will help me loop for the vars tokens
@@ -91,7 +137,7 @@ let subroutineDecGenerate(treeNode:parserRecord) =
     
     parameterListHandler(treeNode.inner.Item 4) |> ignore
     VmCode <- VmCode @ subroutineBodyGenerate(treeNode.inner.Item 6)
-    ["function " + className + "." + functionName + " " + varCount(Var)] @ VmCode
+    ["function " + className + "." + functionName + " " + varCount(Var).ToString()] @ VmCode
 
 
 
