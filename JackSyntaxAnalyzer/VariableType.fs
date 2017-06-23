@@ -2,12 +2,12 @@
 
 open ParserType
 
-type variableClassKind = Static  //single copy of this variable must be kept alive at all time 
+type variableKind = Static  //single copy of this variable must be kept alive at all time 
                             | Field //keep diffrent copies for each object 
+                            | Var //created on subroutine entry,killed on exit
+                            | Argument //similar to local
                     
-                    
-type variableMethodKind = Var //created on subroutine entry,killed on exit
-                           | Argument //similar to local
+                   
 
 type variableType = Int | Char | Boolean | ClassName
 
@@ -19,18 +19,13 @@ let parserToType(t:parserRecord) =
     | "boolean" -> Boolean
     | v when t.pType.Equals Identifier -> ClassName
 
-let parserToCKind(t:parserRecord) = 
+let parserToKind(t:parserRecord) = 
     match t.value with
     | "static" -> Static
     | "field" -> Field
-
-let parserToMKind(t:parserRecord) = 
-    match t.value with
     | "var" -> Var
-    | v when t.pType.Equals ParamaterList -> Argument
+    | _ -> Argument
 
+type variableClassRecord = {name:string ; vType:string ; vCKind:variableKind ;index:int }
 
-
-type variableClassRecord = {name:string ; vType:string ; vCKind:variableClassKind ;index:int }
-
-type variableMethodRecord = {name:string ; vType:string ; vMKind:variableMethodKind ;index:int }
+type variableMethodRecord = {name:string ; vType:string ; vMKind:variableKind ;index:int }
