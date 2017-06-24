@@ -36,14 +36,14 @@ let rec termGenerate (p:parserRecord) =
     let stringGenerate (r:parserRecord) = 
         String.Format("push constant {0}", r.value.Length) :: 
         [for c in Encoding.ASCII.GetBytes(r.value) ->  
-         "push constant " + c.ToString() + "\nCALL String.appendChar 2"]
+         "push constant " + c.ToString() ; "call String.appendChar 2"]
     
     let subroutineCallGenerate (p:parserRecord) =
         if p.inner.[1].value = "." then // class-scoped function
             // MAY NEED CHECKING
-            "PUSH " + kindOf(p.inner.[0].value).ToString() + " " + indexOf(p.inner.[0].value).ToString() :: 
+            "push " + getStack(p.inner.[0].value) + " " + indexOf(p.inner.[0].value).ToString() :: 
             expressionListGenerate(p.inner.[4]) @
-             ["CALL " + p.inner.[2].value]
+             ["call " + p.inner.[2].value]
         else // regular function
             expressionListGenerate(p.inner.[2]) @ ["call " + p.inner.[0].value]
 
@@ -54,12 +54,12 @@ let rec termGenerate (p:parserRecord) =
         | parserType.IntegerConstant -> ["push constant " + p.value]
         | parserType.KeyWord -> keywordConstantGenerate p
         | parserType.StringConstant -> stringGenerate inner1
-        | parserType.Identifier -> ["push " + kindOf(inner1.value).ToString() + " " + indexOf(inner1.value).ToString()] // MAY NEEDS CHECKING
+        | parserType.Identifier -> ["push " + getStack(inner1.value) + " " + indexOf(inner1.value).ToString()] // MAY NEEDS CHECKING
         | r -> subroutineCallGenerate(inner1)
     else 
         match p.inner with
         | r when r.[0].value = "(" -> expressionGenerate(r.[1])
-        | r when r.[1].value =  "[" -> "push " + kindOf(inner1.value).ToString() + indexOf(inner1.value).ToString() :: expressionGenerate(r.[2]) @ ["add"] // MAY NEED CHECKING                           
+        | r when r.[1].value =  "[" -> "push " + getStack(inner1.value) + " " + indexOf(inner1.value).ToString() :: expressionGenerate(r.[2]) @ ["add"] // MAY NEED CHECKING                           
         | r -> termGenerate(p.inner.[1]) @ unaryOpGenerate(p.inner.[0])
 
 and expressionGenerate (p:parserRecord) = 
@@ -71,7 +71,7 @@ and expressionGenerate (p:parserRecord) =
         let mutable acc = termGenerate(p.inner.[0])
 
         while counter < p.inner.Length do // while more 'op term'
-            acc <- acc @ termGenerate(p.inner.[counter * 2]) @ opGenerate(p.inner.[counter * 2 - 1])
+            acc <- acc @ termGenerate(p.inner.[counter + 1]) @ opGenerate(p.inner.[counter])
             counter <- counter + 2
 
         acc

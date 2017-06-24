@@ -6,6 +6,7 @@ type variableKind = Static  //single copy of this variable must be kept alive at
                             | Field //keep diffrent copies for each object 
                             | Var //created on subroutine entry,killed on exit
                             | Argument //similar to local
+                            | None
                     
                    
 

@@ -53,7 +53,7 @@ let addToScope(VName:string , VType:variableType , VMKind:variableKind) =
 
 //will return a Field if such variable doesn't exist, in addition the funciton will prefer return a method variable
 let kindOf(Name:string) = 
-    let mutable kind = Field //set to field at first so i can check if type has changed to methodKind
+    let mutable kind = None //set to field at first so i can check if type has changed to methodKind
     for row in classScope do
         if row.name.Equals Name then
             kind <- row.vCKind
@@ -64,16 +64,26 @@ let kindOf(Name:string) =
     
     kind
 
+let getStack(Name:string) = 
+    match kindOf(Name) with
+    | Var -> "local"
+    | Argument -> "argument"
+    | Field -> "this"
+    | Static -> "static"
+    | _ -> ""
+
 let typeOf(VName:string) = 
     let mutable t = ""
 
     if classScope.Length > 0 then
-        let record = classScope |> List.filter(fun record -> record.name.Equals VName) |> List.item(0) 
-        t <- record.vType
+        let record = classScope |> List.filter(fun record -> record.name.Equals VName)
+        if not record.IsEmpty then
+            t <- record.Item(0).vType
 
     if functionScope.Length > 0 then
-        let record = functionScope |> List.filter(fun record -> record.name.Equals VName) |> List.item(0)
-        t <- record.vType
+        let record = functionScope |> List.filter(fun record -> record.name.Equals VName)
+        if not record.IsEmpty then
+            t <- record.Item(0).vType
 
     t
 
@@ -81,11 +91,13 @@ let indexOf(VName:string) =
     let mutable t = 0
 
     if classScope.Length > 0 then
-        let record = classScope |> List.filter(fun record -> record.name.Equals VName) |> List.item(0) 
-        t <- record.index
+        let record = classScope |> List.filter(fun record -> record.name.Equals VName)
+        if not record.IsEmpty then
+            t <- record.Item(0).index
 
     if functionScope.Length > 0 then
-        let record = functionScope |> List.filter(fun record -> record.name.Equals VName) |> List.item(0)
-        t <- record.index
+        let record = functionScope |> List.filter(fun record -> record.name.Equals VName)
+        if not record.IsEmpty then
+            t <- record.Item(0).index
 
     t

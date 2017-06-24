@@ -60,17 +60,13 @@ let rec statementsGenerate(treeNode:parserRecord) =
 and letGenerate(treeNode:parserRecord) =     //let statement  
     let mutable VmCode = List.empty<string>
     
-    let stack = match kindOf(treeNode.inner.Item(1).value) with
-                | Var -> "local"
-                | Argument -> "argument"
-                | Field -> "this"
-                | Static -> "static"
+    let stack = getStack(treeNode.inner.Item(1).value)
     
     if treeNode.inner.Item(2).value.Equals("[") then //in case of array
         VmCode <- VmCode @ ["push " + stack + " " + indexOf(treeNode.inner.Item(1).value).ToString()] @ expressionGenerate(treeNode.inner.Item 3) @
                      ["add";"pop pointer 1"] @ expressionGenerate(treeNode.inner.Item(treeNode.inner.Length - 1)) @ ["pop that 0"]
     else 
-        VmCode <- VmCode @ expressionGenerate(treeNode.inner.Item(treeNode.inner.Length - 1)) @ ["pop " + stack + indexOf(treeNode.inner.Item(1).value).ToString()]
+        VmCode <- VmCode @ expressionGenerate(treeNode.inner.Item(treeNode.inner.Length - 2)) @ ["pop " + stack + indexOf(treeNode.inner.Item(1).value).ToString()]
     VmCode
 
 and ifGenerate(treeNode:parserRecord) =      //if statement
@@ -94,9 +90,10 @@ and doGenerate(treeNode:parserRecord) =      //do statement
 
     //push this arg
     if treeNode.inner.Item(2).value.Equals "." then // if its a call with a variable
-        VmCode <- VmCode @ ["push pointer 0"]
+        if not(kindOf(treeNode.inner.Item(1).value).Equals None) then
+            VmCode <- VmCode @ ["push " + getStack(treeNode.inner.Item(1).value) + " " + indexOf(treeNode.inner.Item(1).value).ToString()]
     else 
-        VmCode <- VmCode @ ["push argument " + indexOf(treeNode.inner.Item(1).value).ToString()]
+        VmCode <- VmCode @ ["push pointer 0"]
 
     VmCode <- VmCode @ expressionListGenerate(treeNode.inner.Item(treeNode.inner.Length - 3)) //push all the parameters to the list
     let paramList =  treeNode.inner |> List.find (fun p -> p.pType = ExpressionList)
