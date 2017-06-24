@@ -15,10 +15,9 @@ let classVarDecHandler(treeNode:parserRecord) =
     let Vtype = treeNode.inner.Item(1) //the var type
     
     let mutable nameIndex:int = 2 //in case multiple variable were defined
-    while not(treeNode.inner.Item(nameIndex).value.Equals ";") do //as long as we dont get to the end of the declartion
-        nameIndex <- nameIndex + 1
+    while not(treeNode.inner.Item(nameIndex - 1).value.Equals ";") && not(treeNode.inner.Item(nameIndex).value.Equals ";") do //as long as we dont get to the end of the declartion
         addToScope(treeNode.inner.Item(nameIndex).value,parserToType(Vtype),parserToKind(kind)) |> ignore
-        nameIndex <- nameIndex + 1
+        nameIndex <- nameIndex + 2
 
 
 
@@ -29,7 +28,7 @@ let classVarDecHandler(treeNode:parserRecord) =
 let parameterListHandler(treeNode:parserRecord) = 
     let mutable counter = 0 //going through the nodes (to add all the paramaters)
     
-    while treeNode.inner.Length >= counter do
+    while treeNode.inner.Length > counter do
         addToScope(treeNode.inner.Item(counter + 1).value , parserToType(treeNode.inner.Item(counter)),Argument) |> ignore
         counter <- counter + 3 //next parameter
 
@@ -38,10 +37,9 @@ let varDecHandler(treeNode:parserRecord) =
     let Vtype = parserToType(treeNode.inner.Item(1)) //the var type
     
     let mutable nameIndex:int = 2 //in case multiple variable were defined
-    while not(treeNode.inner.Item(nameIndex).value.Equals ";") do //as long as we dont get to the end of the declartion
-        nameIndex <- nameIndex + 1
+    while not(treeNode.inner.Item(nameIndex - 1).value.Equals ";") && not(treeNode.inner.Item(nameIndex).value.Equals ";") do //as long as we dont get to the end of the declartion
         addToScope(treeNode.inner.Item(nameIndex).value,Vtype,Var) |> ignore
-        nameIndex <- nameIndex + 1
+        nameIndex <- nameIndex + 2
 
 //////*function's code*
 //////////////// return the code of all the combined statements
@@ -101,7 +99,8 @@ and doGenerate(treeNode:parserRecord) =      //do statement
         VmCode <- VmCode @ ["push argument " + indexOf(treeNode.inner.Item(1).value).ToString()]
 
     VmCode <- VmCode @ expressionListGenerate(treeNode.inner.Item(treeNode.inner.Length - 3)) //push all the parameters to the list
-    let paramsNumber = VmCode.Length - 1
+    let paramList =  treeNode.inner |> List.find (fun p -> p.pType = ExpressionList)
+    let paramsNumber =  paramList.inner.Length / 2 + 1
 
     if treeNode.inner.Item(2).value.Equals "." then // if its a call with a variable
         VmCode <- VmCode @ ["call " + treeNode.inner.Item(1).value + treeNode.inner.Item(2).value + treeNode.inner.Item(3).value + " " + paramsNumber.ToString()]
@@ -119,7 +118,7 @@ and returnGenerate(treeNode:parserRecord) =  //return statement
     VmCode
 
 let subroutineBodyGenerate(treeNode:parserRecord) =  
-    let mutable varIndex = 2 //these will help me loop for the vars tokens
+    let mutable varIndex = 1 //these will help me loop for the vars tokens
 
     while treeNode.inner.Item(varIndex).pType.Equals VarDec do
         varDecHandler(treeNode.inner.Item(varIndex)) |> ignore
@@ -134,7 +133,7 @@ let subroutineDecGenerate(treeNode:parserRecord) =
 
     if not(treeNode.inner.Head.value.Equals "function") then //set "this" variable 
         addToScope("this",ClassName,Argument)
-        VmCode <- VmCode @ ["push argumnet 0"; "pop pointer 0"] //set "THIS" frame
+        VmCode <- VmCode @ ["push argument 0"; "pop pointer 0"] //set "THIS" frame
     
     parameterListHandler(treeNode.inner.Item 4) |> ignore
     VmCode <- VmCode @ subroutineBodyGenerate(treeNode.inner.Item 6)

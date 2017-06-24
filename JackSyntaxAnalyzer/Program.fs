@@ -8,8 +8,9 @@ open XmlWriter
 open Tokenizer
 open expression
 open TokenType
-
+open expression
 open TokenIndex
+open CodeGeneration
 
 
 let tempFile = @"temp.jack"
@@ -35,19 +36,22 @@ let getArg (argv:string[]) =
         | _ -> argv.[0]
 
 
-let tokenizeFile(file:FileInfo) = 
+let compileFile(file:FileInfo) = 
     stripComments(file) // writes the temp file
 
     // tokenize file
     let sr = new StreamReader(tempFile)
-    let root = tokenize(sr) |> List.toArray |> Array.filter(fun t -> t.eType < elementType.IgnoreMe)
-    
-    
-    let Xtree = createSingleParserTree(classStructure(root).[0])
-    //|> createTokensXml
+    let cmds = tokenize(sr) |> 
+               List.toArray |> 
+               Array.filter(fun t -> t.eType < elementType.IgnoreMe) |>
+               classStructure |>
+               List.item(0) |>
+               classGenerate |>
+               List.map (fun str -> str + Environment.NewLine) |> // add endl to each command
+               String.Concat
 
     // write to token file
-    File.WriteAllText(file.DirectoryName + @"\" + Path.GetFileNameWithoutExtension(file.Name) + @"Mine.xml", Xtree.ToString())
+    File.WriteAllText(file.DirectoryName + @"\" + Path.GetFileNameWithoutExtension(file.Name) + @".vm", cmds)
 
     sr.Close()
 
@@ -58,7 +62,7 @@ let main argv =
     let dir = new DirectoryInfo(dirPath)
     dir.GetFiles() // get directory files
     |> Array.filter (fun f -> f.Extension = ".jack") // is a jack file
-    |> Array.iter (fun f -> tokenizeFile f) // tokenize jack file
+    |> Array.iter (fun f -> compileFile f) // tokenize jack file
 
     try
         File.Delete(tempFile)
