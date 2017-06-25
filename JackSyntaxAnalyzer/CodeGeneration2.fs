@@ -36,16 +36,18 @@ let rec termGenerate (p:parserRecord) =
     let stringGenerate (r:parserRecord) = 
         String.Format("push constant {0}", r.value.Length) :: 
         [for c in Encoding.ASCII.GetBytes(r.value) ->  
-         "push constant " + c.ToString() ; "call String.appendChar 2"]
+         "push constant " + c.ToString() + "\ncall String.appendChar 2"]
     
     let subroutineCallGenerate (p:parserRecord) =
+        let paramList =  p.inner |> List.find (fun p -> p.pType = ExpressionList)
+        let paramsNumber =  paramList.inner.Length / 2 + 1
         if p.inner.[1].value = "." then // class-scoped function
             // MAY NEED CHECKING
             "push " + getStack(p.inner.[0].value) + " " + indexOf(p.inner.[0].value).ToString() :: 
             expressionListGenerate(p.inner.[4]) @
-             ["call " + p.inner.[2].value]
+             ["call " + p.inner.[0].value + "." + p.inner.[2].value + paramsNumber.ToString()]
         else // regular function
-            expressionListGenerate(p.inner.[2]) @ ["call " + p.inner.[0].value]
+            expressionListGenerate(p.inner.[2]) @ ["call " + p.inner.[0].value + paramsNumber.ToString()]
 
     let inner1 = p.inner.[0] // first item
 
