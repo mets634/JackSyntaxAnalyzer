@@ -10,7 +10,7 @@ open VariableType
 
 let keywordConstantGenerate (p:parserRecord) = 
     match p.value with
-    | "true" -> ["push constant -1"]
+    | "true" -> ["push constant 1"; "neg"]
     | "false" -> ["push constant 0"]
     | "null" -> [] // MAY NEED TO MODIFY
     | "this" -> ["push pointer 0"]
@@ -25,7 +25,7 @@ let opGenerate (p:parserRecord) =
     | @"+" -> ["add"]
     | @"-" -> ["sub"]
     | @"*" -> ["call Math.multiply 2"]
-    | @"/" -> ["call Math.divide"]
+    | @"/" -> ["call Math.divide 2"]
     | @"&" -> ["and"]
     | @"|" -> ["or"]
     | @"<" -> ["lt"]
