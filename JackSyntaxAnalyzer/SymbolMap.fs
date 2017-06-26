@@ -101,3 +101,14 @@ let indexOf(VName:string) =
             t <- record.Item(0).index
 
     t
+
+let isVar (VName:string) =
+    let f = functionScope |> List.filter (fun f -> f.name.Equals VName)
+    if f.Length > 0 then
+        f.[0].vMKind = Var
+    else
+        let c = classScope |> List.filter (fun f -> f.name.Equals VName)
+        if c.Length > 0 then
+            c.[0].vCKind = Var
+
+        else false

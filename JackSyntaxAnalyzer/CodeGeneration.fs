@@ -66,7 +66,7 @@ and letGenerate(treeNode:parserRecord) =     //let statement
         VmCode <- VmCode @ ["push " + stack + " " + indexOf(treeNode.inner.Item(1).value).ToString()] @ expressionGenerate(treeNode.inner.Item 3) @
                      ["add";"pop pointer 1"] @ expressionGenerate(treeNode.inner.Item(treeNode.inner.Length - 1)) @ ["pop that 0"]
     else 
-        VmCode <- VmCode @ expressionGenerate(treeNode.inner.Item(treeNode.inner.Length - 2)) @ ["pop " + stack + indexOf(treeNode.inner.Item(1).value).ToString()]
+        VmCode <- VmCode @ expressionGenerate(treeNode.inner.Item(treeNode.inner.Length - 2)) @ ["pop " + stack + " " + indexOf(treeNode.inner.Item(1).value).ToString()]
     VmCode
 
 and ifGenerate(treeNode:parserRecord) =      //if statement
