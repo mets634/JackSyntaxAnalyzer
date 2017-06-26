@@ -97,7 +97,10 @@ and doGenerate(treeNode:parserRecord) =      //do statement
 
     VmCode <- VmCode @ expressionListGenerate(treeNode.inner.Item(treeNode.inner.Length - 3)) //push all the parameters to the list
     let paramList =  treeNode.inner |> List.find (fun p -> p.pType = ExpressionList)
-    let paramsNumber =  paramList.inner.Length / 2 + 1
+    let mutable paramsNumber = 0
+    if not(paramList.inner.Length.Equals 0) then
+        paramsNumber <-  paramList.inner.Length / 2 + 1
+
 
     if treeNode.inner.Item(2).value.Equals "." then // if its a call with a variable
         VmCode <- VmCode @ ["call " + treeNode.inner.Item(1).value + treeNode.inner.Item(2).value + treeNode.inner.Item(3).value + " " + paramsNumber.ToString()]

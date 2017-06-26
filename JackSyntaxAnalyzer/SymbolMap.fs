@@ -46,10 +46,10 @@ let varCount(VK:variableKind) =
 
 let addToScope(VName:string , VType:variableType , VMKind:variableKind) = 
     match VMKind with
-    | Argument -> functionScope <- {name = VName; vType = TypeToString VType; vMKind = VMKind; index = varCount(VMKind) + 1} :: functionScope
-    | Var -> functionScope <- {name = VName; vType = TypeToString VType; vMKind = VMKind; index = varCount(VMKind) + 1} :: functionScope
-    | Field -> classScope <- {name = VName; vType = TypeToString VType; vCKind = VMKind; index = varCount(VMKind) + 1} :: classScope
-    | Static -> classScope <- {name = VName; vType = TypeToString VType; vCKind = VMKind; index = varCount(VMKind) + 1} :: classScope
+    | Argument -> functionScope <- {name = VName; vType = TypeToString VType; vMKind = VMKind; index = varCount(VMKind)} :: functionScope
+    | Var -> functionScope <- {name = VName; vType = TypeToString VType; vMKind = VMKind; index = varCount(VMKind)} :: functionScope
+    | Field -> classScope <- {name = VName; vType = TypeToString VType; vCKind = VMKind; index = varCount(VMKind)} :: classScope
+    | Static -> classScope <- {name = VName; vType = TypeToString VType; vCKind = VMKind; index = varCount(VMKind)} :: classScope
 
 //will return a Field if such variable doesn't exist, in addition the funciton will prefer return a method variable
 let kindOf(Name:string) = 
