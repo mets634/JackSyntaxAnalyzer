@@ -34,8 +34,9 @@ let opGenerate (p:parserRecord) =
 
 let rec termGenerate (p:parserRecord) = 
     let stringGenerate (r:parserRecord) = 
-        String.Format("push constant {0}", r.value.Length) :: 
-        [for c in Encoding.ASCII.GetBytes(r.value) ->  
+        String.Format("push constant {0}", r.value.Length - 2) :: //-2 because in tokenze we add a space in the end and the begining 
+        ["call String.new 1"] @ //createing the string
+        [for c in Encoding.ASCII.GetBytes(r.value.Substring(1,r.value.Length - 2)) ->  
          "push constant " + c.ToString() + Environment.NewLine + "call String.appendChar 2"]
     
     let subroutineCallGenerate (p:parserRecord) =
@@ -62,7 +63,7 @@ let rec termGenerate (p:parserRecord) =
     else 
         match p.inner with
         | r when r.[0].value = "(" -> expressionGenerate(r.[1])
-        | r when r.[1].value =  "[" -> "push " + getStack(inner1.value) + " " + indexOf(inner1.value).ToString() :: expressionGenerate(r.[2]) @ ["add"] // MAY NEED CHECKING                           
+        | r when r.[1].value =  "[" -> "push " + getStack(inner1.value) + " " + indexOf(inner1.value).ToString() :: expressionGenerate(r.[2]) @ ["add";"pop pointer 1";"push that 0"] // MAY NEED CHECKING                           
         | r when List.exists (fun t -> t.pType = ExpressionList) r -> subroutineCallGenerate(p)
         | r -> termGenerate(p.inner.[1]) @ unaryOpGenerate(p.inner.[0])
 

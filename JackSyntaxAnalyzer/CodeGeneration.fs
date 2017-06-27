@@ -64,7 +64,7 @@ and letGenerate(treeNode:parserRecord) =     //let statement
     
     if treeNode.inner.Item(2).value.Equals("[") then //in case of array
         VmCode <- VmCode @ ["push " + stack + " " + indexOf(treeNode.inner.Item(1).value).ToString()] @ expressionGenerate(treeNode.inner.Item 3) @
-                     ["add";"pop pointer 1"] @ expressionGenerate(treeNode.inner.Item(treeNode.inner.Length - 1)) @ ["pop that 0"]
+                     ["add"] @ expressionGenerate(treeNode.inner.Item(treeNode.inner.Length - 2)) @ ["pop temp 0";"pop pointer 1";"push temp 0";"pop that 0"]
     else 
         VmCode <- VmCode @ expressionGenerate(treeNode.inner.Item(treeNode.inner.Length - 2)) @ ["pop " + stack + " " + indexOf(treeNode.inner.Item(1).value).ToString()]
     VmCode
@@ -83,30 +83,34 @@ and ifGenerate(treeNode:parserRecord) =      //if statement
 and whileGenerate(treeNode:parserRecord) =   //while statement
     let idx = getNumber()
     ["label WHILE_EXP" + idx; ] @ expressionGenerate(treeNode.inner.Item 2) @ ["not";"if-goto WHILE_END" + idx] 
-                         @ statementsGenerate(treeNode.inner.Item 5) @ ["label WHILE_END" + idx]
+                         @ statementsGenerate(treeNode.inner.Item 5) @ ["goto WHILE_EXP" + idx;"label WHILE_END" + idx]
     
 and doGenerate(treeNode:parserRecord) =      //do statement
     let mutable VmCode = List.Empty
 
+    let mutable isMethod = 0
     //push this arg
     if treeNode.inner.Item(2).value.Equals "." then // if its a call with a variable
         if not(kindOf(treeNode.inner.Item(1).value).Equals None) then
             VmCode <- VmCode @ ["push " + getStack(treeNode.inner.Item(1).value) + " " + indexOf(treeNode.inner.Item(1).value).ToString()]
+            isMethod <- 1
     else 
         VmCode <- VmCode @ ["push pointer 0"]
+        isMethod <- 1
 
     VmCode <- VmCode @ expressionListGenerate(treeNode.inner.Item(treeNode.inner.Length - 3)) //push all the parameters to the list
     let paramList =  treeNode.inner |> List.find (fun p -> p.pType = ExpressionList)
     let mutable paramsNumber = 0
     if not(paramList.inner.Length.Equals 0) then
         paramsNumber <-  paramList.inner.Length / 2 + 1
-
+        
+    paramsNumber <- paramsNumber + isMethod //in case we added "this" arg
 
     if treeNode.inner.Item(2).value.Equals "." then // if its a call with a variable
         VmCode <- VmCode @ ["call " + treeNode.inner.Item(1).value + treeNode.inner.Item(2).value + treeNode.inner.Item(3).value + " " + paramsNumber.ToString()]
     else
         VmCode <- VmCode @ ["call " + className + "." + treeNode.inner.Item(1).value + " " + paramsNumber.ToString()]    
-    VmCode
+    VmCode @ ["pop temp 0"]
 
 and returnGenerate(treeNode:parserRecord) =  //return statement
     let mutable VmCode = ["return"]
