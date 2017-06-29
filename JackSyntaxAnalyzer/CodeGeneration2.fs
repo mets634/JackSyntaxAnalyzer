@@ -50,7 +50,8 @@ let rec termGenerate (p:parserRecord) =
             else // static method
                 expressionListGenerate(p.inner.[4]) @ ["call " + p.inner.[0].value + "." + p.inner.[2].value + " " + paramsNumber.ToString()]
         else // regular function
-            expressionListGenerate(p.inner.[2]) @ ["call " + p.inner.[0].value + " " + paramsNumber.ToString()]
+            ////////////////////// push this
+            "push this" :: expressionListGenerate(p.inner.[2]) @ ["call " + p.inner.[0].value + " " + (paramsNumber + 1).ToString()]
     
     let inner1 = p.inner.[0] // first item
 
