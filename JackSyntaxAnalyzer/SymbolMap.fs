@@ -2,10 +2,10 @@
 
 open VariableType
 
-let mutable functionScope = [{name = ""; vType = ""; vMKind = Var; index = 0}]
+let mutable functionScope = [{name = ""; vType = ""; vMKind = Var; index = 0 ; cName = ""}]
 let mutable functionName = ""
 
-let mutable classScope = [{name = ""; vType = ""; vCKind = Field; index = 0}]
+let mutable classScope = [{name = ""; vType = ""; vCKind = Field; index = 0 ; cName = ""}]
 let mutable className = ""
 
 let mutable statementNumber = 0
@@ -35,21 +35,22 @@ let varCount(VK:variableKind) =
     let mutable counter = 0
 
     match VK with
-    | t when (t.Equals Var||t.Equals Argument) -> for row in functionScope do
-                                                     if row.vMKind.Equals VK then
-                                                        counter <- counter + 1
-                                                  counter
+    | t when (t.Equals Var||t.Equals Argument|| t.Equals This) -> for row in functionScope do
+                                                                    if row.vMKind.Equals VK then
+                                                                        counter <- counter + 1
+                                                                  counter
     | t when (t.Equals Static||t.Equals Field) -> for row in classScope do
-                                                     if row.vCKind.Equals VK then
+                                                    if row.vCKind.Equals VK then
                                                         counter <- counter + 1
                                                   counter
 
-let addToScope(VName:string , VType:variableType , VMKind:variableKind) = 
+let addToScope(VName:string , VType:variableType , VMKind:variableKind , cn:string) = 
     match VMKind with
-    | Argument -> functionScope <- {name = VName; vType = TypeToString VType; vMKind = VMKind; index = varCount(VMKind)} :: functionScope
-    | Var -> functionScope <- {name = VName; vType = TypeToString VType; vMKind = VMKind; index = varCount(VMKind)} :: functionScope
-    | Field -> classScope <- {name = VName; vType = TypeToString VType; vCKind = VMKind; index = varCount(VMKind)} :: classScope
-    | Static -> classScope <- {name = VName; vType = TypeToString VType; vCKind = VMKind; index = varCount(VMKind)} :: classScope
+    | Argument -> functionScope <- {name = VName; vType = TypeToString VType; vMKind = VMKind; index = varCount(VMKind) ; cName = cn} :: functionScope
+    | Var -> functionScope <- {name = VName; vType = TypeToString VType; vMKind = VMKind; index = varCount(VMKind) ; cName = cn} :: functionScope
+    | Field -> classScope <- {name = VName; vType = TypeToString VType; vCKind = VMKind; index = varCount(VMKind) ; cName = cn} :: classScope
+    | Static -> classScope <- {name = VName; vType = TypeToString VType; vCKind = VMKind; index = varCount(VMKind) ; cName = cn} :: classScope
+    | This -> functionScope <- {name = VName; vType = TypeToString VType; vMKind = VMKind; index = varCount(VMKind) ; cName = className} :: functionScope
 
 //will return a Field if such variable doesn't exist, in addition the funciton will prefer return a method variable
 let kindOf(Name:string) = 
@@ -70,6 +71,7 @@ let getStack(Name:string) =
     | Argument -> "argument"
     | Field -> "this"
     | Static -> "static"
+    | This -> "pointer"
     | _ -> ""
 
 let typeOf(VName:string) = 
@@ -104,11 +106,21 @@ let indexOf(VName:string) =
 
 let isVar (VName:string) =
     let f = functionScope |> List.filter (fun f -> f.name.Equals VName)
-    if f.Length > 0 then
-        f.[0].vMKind = Var
-    else
-        let c = classScope |> List.filter (fun f -> f.name.Equals VName)
-        if c.Length > 0 then
-            c.[0].vCKind = Var
+    let c = classScope |> List.filter (fun f -> f.name.Equals VName)
+     
+    c.Length > 0 || f.Length > 0
 
-        else false
+let varClassName(VName:string) = 
+    let mutable n = ""
+
+    if classScope.Length > 0 then
+        let record = classScope |> List.filter(fun record -> record.name.Equals VName)
+        if not record.IsEmpty then
+            n <- record.Item(0).cName
+
+    if functionScope.Length > 0 then
+        let record = functionScope |> List.filter(fun record -> record.name.Equals VName)
+        if not record.IsEmpty then
+            n <- record.Item(0).cName
+
+    n

@@ -46,12 +46,12 @@ let rec termGenerate (p:parserRecord) =
             if isVar(p.inner.[0].value) then // is variable, need to push instance
                 "push " + getStack(p.inner.[0].value) + " " + indexOf(p.inner.[0].value).ToString() :: 
                 expressionListGenerate(p.inner.[4]) @
-                 ["call " + p.inner.[0].value + "." + p.inner.[2].value + " " + (paramsNumber + 1).ToString()]
+                 ["call " + varClassName(p.inner.[0].value) + "." + p.inner.[2].value + " " + (paramsNumber + 1).ToString()]
             else // static method
                 expressionListGenerate(p.inner.[4]) @ ["call " + p.inner.[0].value + "." + p.inner.[2].value + " " + paramsNumber.ToString()]
         else // regular function
             ////////////////////// push this
-            "push this" :: expressionListGenerate(p.inner.[2]) @ ["call " + p.inner.[0].value + " " + (paramsNumber + 1).ToString()]
+            "push pointer 0" :: expressionListGenerate(p.inner.[2]) @ ["call " + className + p.inner.[0].value + " " + (paramsNumber + 1).ToString()]
     
     let inner1 = p.inner.[0] // first item
 

@@ -6,6 +6,7 @@ type variableKind = Static  //single copy of this variable must be kept alive at
                             | Field //keep diffrent copies for each object 
                             | Var //created on subroutine entry,killed on exit
                             | Argument //similar to local
+                            | This //for ctor
                             | None
                     
                    
@@ -27,6 +28,6 @@ let parserToKind(t:parserRecord) =
     | "var" -> Var
     | _ -> Argument
 
-type variableClassRecord = {name:string ; vType:string ; vCKind:variableKind ;index:int }
+type variableClassRecord = {name:string ; vType:string ; vCKind:variableKind ;index:int ; cName:string }
 
-type variableMethodRecord = {name:string ; vType:string ; vMKind:variableKind ;index:int }
+type variableMethodRecord = {name:string ; vType:string ; vMKind:variableKind ;index:int ; cName:string }

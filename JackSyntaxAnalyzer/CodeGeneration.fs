@@ -16,7 +16,7 @@ let classVarDecHandler(treeNode:parserRecord) =
     
     let mutable nameIndex:int = 2 //in case multiple variable were defined
     while not(treeNode.inner.Item(nameIndex - 1).value.Equals ";") && not(treeNode.inner.Item(nameIndex).value.Equals ";") do //as long as we dont get to the end of the declartion
-        addToScope(treeNode.inner.Item(nameIndex).value,parserToType(Vtype),parserToKind(kind)) |> ignore
+        addToScope(treeNode.inner.Item(nameIndex).value,parserToType(Vtype),parserToKind(kind),Vtype.value) |> ignore
         nameIndex <- nameIndex + 2
 
 
@@ -29,7 +29,7 @@ let parameterListHandler(treeNode:parserRecord) =
     let mutable counter = 0 //going through the nodes (to add all the paramaters)
     
     while treeNode.inner.Length > counter do
-        addToScope(treeNode.inner.Item(counter + 1).value , parserToType(treeNode.inner.Item(counter)),Argument) |> ignore
+        addToScope(treeNode.inner.Item(counter + 1).value , parserToType(treeNode.inner.Item(counter)),Argument,treeNode.inner.Item(counter).value) |> ignore
         counter <- counter + 3 //next parameter
 
 ///////////////add all the variable to the funcion's scope as Var
@@ -38,7 +38,7 @@ let varDecHandler(treeNode:parserRecord) =
     
     let mutable nameIndex:int = 2 //in case multiple variable were defined
     while not(treeNode.inner.Item(nameIndex - 1).value.Equals ";") && not(treeNode.inner.Item(nameIndex).value.Equals ";") do //as long as we dont get to the end of the declartion
-        addToScope(treeNode.inner.Item(nameIndex).value,Vtype,Var) |> ignore
+        addToScope(treeNode.inner.Item(nameIndex).value,Vtype,Var,treeNode.inner.Item(1).value) |> ignore
         nameIndex <- nameIndex + 2
 
 //////*function's code*
@@ -73,11 +73,12 @@ and ifGenerate(treeNode:parserRecord) =      //if statement
     let mutable VmCode = expressionGenerate(treeNode.inner.Item 2)
     let idx  = getNumber()
 
-    VmCode <- VmCode @ ["if-goto IF_TRUE" + idx; "goto IF_FALSE" + idx;"label IF_TRUE" + idx] @ statementsGenerate(treeNode.inner.Item 5) @ ["label IF_FALSE" + idx]
+    VmCode <- VmCode @ ["if-goto IF_TRUE" + idx; "goto IF_FALSE" + idx;"label IF_TRUE" + idx] @ statementsGenerate(treeNode.inner.Item 5)
 
     if treeNode.inner.Length > 7 then //in case of 'else statement
-        VmCode <- VmCode @ statementsGenerate(treeNode.inner.Item 9)
-        
+        VmCode <- VmCode @ ["goto IF_END" + idx ;"label IF_FALSE" + idx] @ statementsGenerate(treeNode.inner.Item 9) @ ["label IF_END" + idx]
+    else
+        VmCode <- VmCode @ ["label IF_FALSE" + idx]
     VmCode
 
 and whileGenerate(treeNode:parserRecord) =   //while statement
@@ -107,7 +108,10 @@ and doGenerate(treeNode:parserRecord) =      //do statement
     paramsNumber <- paramsNumber + isMethod //in case we added "this" arg
 
     if treeNode.inner.Item(2).value.Equals "." then // if its a call with a variable
-        VmCode <- VmCode @ ["call " + treeNode.inner.Item(1).value + treeNode.inner.Item(2).value + treeNode.inner.Item(3).value + " " + paramsNumber.ToString()]
+        if not(kindOf(treeNode.inner.Item(1).value).Equals None) then
+            VmCode <- VmCode @ ["call " + varClassName(treeNode.inner.Item(1).value) + treeNode.inner.Item(2).value + treeNode.inner.Item(3).value + " " + paramsNumber.ToString()]
+        else
+            VmCode <- VmCode @ ["call " + treeNode.inner.Item(1).value + treeNode.inner.Item(2).value + treeNode.inner.Item(3).value + " " + paramsNumber.ToString()]       
     else
         VmCode <- VmCode @ ["call " + className + "." + treeNode.inner.Item(1).value + " " + paramsNumber.ToString()]    
     VmCode @ ["pop temp 0"]
@@ -135,9 +139,13 @@ let subroutineDecGenerate(treeNode:parserRecord) =
 
     let mutable VmCode = List.Empty //the generated
 
-    if not(treeNode.inner.Head.value.Equals "function") then //set "this" variable 
-        addToScope("this",ClassName,Argument)
+    if treeNode.inner.Head.value.Equals "method" then //set "this" variable 
+        addToScope("this",ClassName,Argument,className)
         VmCode <- VmCode @ ["push argument 0"; "pop pointer 0"] //set "THIS" frame
+    if treeNode.inner.Head.value.Equals "constructor" then //set "this" variable 
+        addToScope("this",ClassName,This,className)
+        VmCode <- VmCode @ ["push constant " + varCount(Field).ToString(); "call Memory.alloc 1";"pop pointer 0"] //set "THIS" frame
+        
     
     parameterListHandler(treeNode.inner.Item 4) |> ignore
     VmCode <- VmCode @ subroutineBodyGenerate(treeNode.inner.Item 6)
